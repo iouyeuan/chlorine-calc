@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b4f56">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="餘氯計算">
+  <meta name="format-detection" content="telephone=no">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+  <title>儲水桶／水車餘氯補添加計算</title>
+  <style>
+    :root {
+      --bg: #e8eef0;
+      --ink: #143038;
+      --muted: #4d6670;
+      --line: #c9d6da;
+      --card: #ffffff;
+      --teal: #0b4f56;
+      --teal-mid: #0e6a73;
+      --teal-soft: #d7eef0;
+      --need: #9a3412;
+      --need-bg: #fff4e8;
+      --need-bd: #f0c49a;
+      --ok: #0f5c45;
+      --ok-bg: #e7f6ef;
+      --ok-bd: #a8d4c0;
+      --info: #1e4d7b;
+      --info-bg: #eaf2fb;
+      --warn: #7a4b00;
+      --warn-bg: #fff8e1;
+      --hl: #fff3c4;
+      --shadow: 0 1px 2px rgba(20, 48, 56, .06), 0 8px 24px rgba(20, 48, 56, .06);
+      --radius: 14px;
+      --font: "Noto Sans TC", "PingFang TC", "Hiragino Sans CNS", "Microsoft JhengHei", "Heiti TC", system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: var(--font);
+      color: var(--ink);
+      background: var(--bg);
+      line-height: 1.55;
+      -webkit-text-size-adjust: 100%;
+    }
+    .wrap {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0 16px 48px;
+    }
+    header.app-head {
+      background: linear-gradient(165deg, #083f45 0%, #0b4f56 55%, #0e6a73 100%);
+      color: #f4fbfb;
+      padding: 22px 16px 20px;
+      padding-top: calc(22px + env(safe-area-inset-top, 0px));
+      margin-bottom: 18px;
+    }
+    header.app-head .inner { max-width: 720px; margin: 0 auto; }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      letter-spacing: .12em;
+      text-transform: none;
+      opacity: .85;
+      margin: 0 0 8px;
+    }
+    header h1 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      margin: 0 0 6px;
+      letter-spacing: .02em;
+      line-height: 1.35;
+    }
+    header .sub {
+      margin: 0;
+      font-size: .92rem;
+      opacity: .9;
+    }
+    .note {
+      margin: 14px 0 0;
+      padding: 8px 12px;
+      border-radius: 8px;
+      background: rgba(255,255,255,.12);
+      font-size: .88rem;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px 16px 18px;
+      margin: 0 0 14px;
+    }
+    .card h2 {
+      margin: 0 0 12px;
+      font-size: .78rem;
+      letter-spacing: .14em;
+      color: var(--teal);
+      font-weight: 700;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    @media (max-width: 420px) {
+      .grid-2.stack-narrow { grid-template-columns: 1fr; }
+    }
+    label.field {
+      display: block;
+      font-size: .86rem;
+      font-weight: 600;
+      color: var(--ink);
+    }
+    label.field .hint {
+      display: block;
+      font-weight: 400;
+      color: var(--muted);
+      font-size: .78rem;
+      margin-top: 2px;
+    }
+    .input-wrap {
+      display: flex;
+      align-items: stretch;
+      margin-top: 6px;
+      border: 1.5px solid #b7c7cb;
+      border-radius: 10px;
+      background: #fbfdfd;
+      overflow: hidden;
+    }
+    .input-wrap:focus-within {
+      border-color: var(--teal-mid);
+      box-shadow: 0 0 0 3px rgba(14, 106, 115, .18);
+    }
+    .input-wrap input {
+      flex: 1;
+      width: 100%;
+      border: 0;
+      background: transparent;
+      font: inherit;
+      font-size: 1.25rem;
+      font-variant-numeric: tabular-nums;
+      padding: 10px 12px;
+      color: var(--ink);
+      min-width: 0;
+    }
+    .input-wrap input:focus { outline: none; }
+    .input-wrap .unit {
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      background: var(--teal-soft);
+      color: var(--teal);
+      font-size: .82rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 14px;
+    }
+    button {
+      font-family: inherit;
+      font-size: .92rem;
+      font-weight: 700;
+      border-radius: 10px;
+      border: 1.5px solid var(--teal);
+      background: var(--teal);
+      color: #fff;
+      padding: 10px 16px;
+      cursor: pointer;
+    }
+    button.secondary {
+      background: #fff;
+      color: var(--teal);
+    }
+    button:focus-visible {
+      outline: 3px solid rgba(14, 106, 115, .35);
+      outline-offset: 2px;
+    }
+    .status {
+      border-radius: 12px;
+      padding: 14px 14px 12px;
+      border: 1.5px solid var(--line);
+      background: #f7fafb;
+    }
+    .status.need { background: var(--need-bg); border-color: var(--need-bd); }
+    .status.ok { background: var(--ok-bg); border-color: var(--ok-bd); }
+    .status.neutral { background: #f7fafb; }
+    .status.unlisted { background: var(--warn-bg); border-color: #ead89a; }
+    .badge {
+      display: inline-block;
+      font-size: .75rem;
+      font-weight: 800;
+      letter-spacing: .08em;
+      padding: 3px 8px;
+      border-radius: 999px;
+      margin-bottom: 8px;
+    }
+    .need .badge { background: #9a3412; color: #fff; }
+    .ok .badge { background: #0f5c45; color: #fff; }
+    .neutral .badge { background: #5b6e75; color: #fff; }
+    .unlisted .badge { background: #7a4b00; color: #fff; }
+    .status .lead {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin: 0 0 6px;
+    }
+    .status p { margin: 0 0 6px; color: var(--ink); }
+    .status p:last-child { margin-bottom: 0; }
+    .sug-num {
+      font-size: 1.8rem;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: .02em;
+      line-height: 1.2;
+    }
+    .sug-num small { font-size: 1rem; font-weight: 700; margin-left: 4px; }
+    .neighbors {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px dashed #d2c48a;
+      font-size: .88rem;
+    }
+    .neighbors h3 {
+      margin: 0 0 6px;
+      font-size: .8rem;
+      color: var(--warn);
+    }
+    .metrics {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 4px;
+    }
+    .metric {
+      background: #f4f8f9;
+      border-radius: 12px;
+      padding: 12px;
+      border: 1px solid var(--line);
+    }
+    .metric .k {
+      font-size: .78rem;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .metric .v {
+      font-size: 1.55rem;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      margin-top: 2px;
+      letter-spacing: .01em;
+    }
+    .metric .v small { font-size: .9rem; font-weight: 700; color: var(--muted); }
+    .formula {
+      margin-top: 12px;
+      background: #f3f7f8;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: .86rem;
+      overflow-x: auto;
+    }
+    .formula .title {
+      font-weight: 700;
+      color: var(--teal);
+      margin-bottom: 4px;
+      font-size: .78rem;
+      letter-spacing: .06em;
+    }
+    .formula code, .formula .eq {
+      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      font-size: .84rem;
+    }
+    .hint-line {
+      margin: 8px 0 0;
+      font-size: .86rem;
+      color: var(--muted);
+    }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table.ref {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .78rem;
+      min-width: 520px;
+    }
+    table.ref th, table.ref td {
+      border: 1px solid #b9c9cd;
+      padding: 5px 6px;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+    }
+    table.ref th {
+      background: var(--teal);
+      color: #fff;
+      font-weight: 700;
+    }
+    table.ref td.rowhead {
+      text-align: left;
+      font-weight: 700;
+      background: #eef5f6;
+      white-space: nowrap;
+      width: 1%;
+    }
+    table.ref td.kind { text-align: left; color: var(--muted); white-space: nowrap; }
+    table.ref tr.band td { background: #e7f2f3; font-weight: 700; color: var(--teal); }
+    table.ref tr.hl-row td { background: #fff8d9; }
+    table.ref tr.hl-row td.rowhead { background: #f5e7a8; }
+    table.ref td.hl-col { background: #e7f4ee; font-weight: 700; }
+    table.ref tr.hl-row td.hl-col {
+      background: #f3d36b;
+      box-shadow: inset 0 0 0 2px #b45309;
+      font-weight: 800;
+    }
+    table.ref caption {
+      text-align: left;
+      font-weight: 700;
+      margin: 0 0 8px;
+      font-size: .9rem;
+      color: var(--ink);
+    }
+    .legend {
+      font-size: .82rem;
+      color: var(--muted);
+      margin: 10px 0 0;
+    }
+    .legend strong { color: var(--ink); }
+    footer.app-foot {
+      font-size: .8rem;
+      color: var(--muted);
+      padding: 8px 4px 0;
+    }
+    .sr-only {
+      position: absolute;
+      width: 1px; height: 1px;
+      overflow: hidden;
+      clip: rect(0,0,0,0);
+    }
+    @media print {
+      body { background: #fff; }
+      header.app-head {
+        background: #fff;
+        color: #000;
+        border-bottom: 2px solid #000;
+        padding: 0 0 12px;
+        margin-bottom: 16px;
+      }
+      header .note { background: #f4f4f4; color: #000; }
+      .card { box-shadow: none; break-inside: avoid; }
+      button, .actions { display: none !important; }
+      .wrap { padding-bottom: 0; }
+    }
+  </style>
+</head>
+<body>
+  <header class="app-head">
+    <div class="inner">
+      <p class="eyebrow">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 2C12 2 6 9.2 6 13.5A6 6 0 0 0 18 13.5C18 9.2 12 2 12 2Z" fill="currentColor"/>
+        </svg>
+        現場計算工具
+      </p>
+      <h1>儲水桶／水車餘氯補添加計算</h1>
+      <p class="sub">以次氯酸鈉（約 10% 有效氯）補添加　·　可離線使用</p>
+      <p class="note">※ 餘氯檢測值 &lt; 0.5 mg/L 需進行添加補充。次氯酸鈉原液（10% 有效氯）＝ 100000 mg/L；儲水桶＝ 1 噸（m³）。10 分滿＝ 1000 L。</p>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="card" aria-labelledby="step1">
+      <h2 id="step1">一、輸入檢測值與剩餘水位</h2>
+      <div class="grid-2">
+        <label class="field" for="chlorine">
+          餘氯檢測值
+          <span class="hint">低於 0.5 mg/L 時需補加</span>
+          <span class="input-wrap">
+            <input id="chlorine" name="chlorine" type="number" inputmode="decimal" min="0" step="0.01" placeholder="例如 0.25">
+            <span class="unit">mg/L</span>
+          </span>
+        </label>
+        <label class="field" for="level">
+          剩餘水位
+          <span class="hint">1–10 分滿，可輸入小數</span>
+          <span class="input-wrap">
+            <input id="level" name="level" type="number" inputmode="decimal" min="1" max="10" step="0.1" placeholder="例如 7">
+            <span class="unit">分滿</span>
+          </span>
+        </label>
+      </div>
+      <div class="actions">
+        <button type="button" class="secondary" id="btn-clear">清除</button>
+      </div>
+    </section>
+
+    <section class="card" aria-live="polite" aria-labelledby="judge-title">
+      <h2 id="judge-title">二、是否需補加與建議添加量</h2>
+      <div id="judge" class="status neutral">
+        <span class="badge">待輸入</span>
+        <p class="lead">請先輸入餘氯檢測值與剩餘水位。</p>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="step3">
+      <h2 id="step3">三、輸入實際添加體積，計算濃度</h2>
+      <label class="field" for="volume">
+        實際添加體積
+        <span class="hint">有表列建議時會預先填入，可自行修改</span>
+        <span class="input-wrap">
+          <input id="volume" name="volume" type="number" inputmode="decimal" min="0" step="0.1" placeholder="例如 4">
+          <span class="unit">mL</span>
+        </span>
+      </label>
+      <div id="calc-out" style="margin-top:14px"></div>
+    </section>
+
+    <section class="card" aria-labelledby="table-title">
+      <h2 id="table-title">參考：補添加量表</h2>
+      <div class="table-wrap">
+        <table class="ref" id="ref-table">
+          <caption>儲水桶或水車餘氯不符合，以次氯酸鈉（約 10% 有效氯）補添加量表</caption>
+          <thead>
+            <tr>
+              <th scope="col">桶槽剩餘氯</th>
+              <th scope="col"></th>
+              <th scope="col" data-level="3">3 分滿</th>
+              <th scope="col" data-level="5">5 分滿</th>
+              <th scope="col" data-level="7">7 分滿</th>
+              <th scope="col" data-level="10">10 分滿</th>
+            </tr>
+          </thead>
+          <tbody id="ref-body"></tbody>
+        </table>
+      </div>
+      <p class="legend">
+        <strong>區間判定：</strong>原表以「0.4~0.5 mg/L」等方式標示，未寫明端點是否包含。
+        若兩端皆计入，0.4、0.3、0.2 會同時落在兩個列。本工具採「下限含、上限不含」，並與表頭「檢測值 &lt; 0.5 mg/L 需添加」一致：
+        <strong>0.4 ≤ 檢測值 &lt; 0.5</strong>、
+        <strong>0.3 ≤ 檢測值 &lt; 0.4</strong>、
+        <strong>0.2 ≤ 檢測值 &lt; 0.3</strong>、
+        <strong>檢測值 &lt; 0.2</strong>。等於 0.5 mg/L 時不需補加。
+      </p>
+      <p class="legend">
+        <strong>公式：</strong>添加濃度（mg/L）＝ 添加體積（mL）× 100 ÷（水位分滿 ÷ 10 × 1000）。
+        其中 100 來自 10% 次氯酸鈉＝ 100 mg 有效氯／mL。表上濃度皆依此式計算後四捨五入至小數 2 位，數值未另行調整。
+        非 3、5、7、10 分滿者為<strong>非表列</strong>，本工具不自行推估建議添加量，僅提供相鄰表列欄位供參考。
+      </p>
+    </section>
+
+    <footer class="app-foot">
+      本頁為單一檔案，不需網路，亦不會儲存你輸入的數值。列印時會隱藏按鈕、保留計算結果與參考表。
+    </footer>
+  </main>
+
+  <script>
+/* === CORE_LOGIC_START === */
+var ChlorineCalc = (function () {
+  var STOCK_MG_PER_ML = 100;
+  var TANK_FULL_L = 1000;
+  var ADD_THRESHOLD = 0.5;
+  var LISTED_LEVELS = [3, 5, 7, 10];
+  var TABLE = {
+    r045: {
+      id: "r045",
+      min: 0.4,
+      max: 0.5,
+      minInclusive: true,
+      maxInclusive: false,
+      tableLabel: "0.4~0.5mg/L",
+      intervalLabel: "0.4 ≤ 檢測值 < 0.5 mg/L",
+      volumes: { 3: null, 5: null, 7: 3, 10: 4 },
+      tableConc: { 3: "0", 5: "0", 7: "0.43", 10: "0.40" }
+    },
+    r034: {
+      id: "r034",
+      min: 0.3,
+      max: 0.4,
+      minInclusive: true,
+      maxInclusive: false,
+      tableLabel: "0.3~0.4mg/L",
+      intervalLabel: "0.3 ≤ 檢測值 < 0.4 mg/L",
+      volumes: { 3: null, 5: 2, 7: 3, 10: 4 },
+      tableConc: { 3: "0", 5: "0.40", 7: "0.43", 10: "0.40" }
+    },
+    r023: {
+      id: "r023",
+      min: 0.2,
+      max: 0.3,
+      minInclusive: true,
+      maxInclusive: false,
+      tableLabel: "0.2~0.3mg/L",
+      intervalLabel: "0.2 ≤ 檢測值 < 0.3 mg/L",
+      volumes: { 3: 1, 5: 2, 7: 4, 10: 5 },
+      tableConc: { 3: "0.33", 5: "0.40", 7: "0.57", 10: "0.50" }
+    },
+    r020: {
+      id: "r020",
+      min: 0,
+      max: 0.2,
+      minInclusive: true,
+      maxInclusive: false,
+      tableLabel: "< 0.2mg/L",
+      intervalLabel: "檢測值 < 0.2 mg/L",
+      volumes: { 3: 2, 5: 3, 7: 5, 10: 7 },
+      tableConc: { 3: "0.67", 5: "0.60", 7: "0.71", 10: "0.70" }
+    }
+  };
+  var RANGE_ORDER = ["r045", "r034", "r023", "r020"];
+
+  function nearlyEqual(a, b) {
+    return Math.abs(a - b) < 1e-9;
+  }
+
+  function listedLevelKey(level) {
+    for (var i = 0; i < LISTED_LEVELS.length; i++) {
+      if (nearlyEqual(level, LISTED_LEVELS[i])) return LISTED_LEVELS[i];
+    }
+    return null;
+  }
+
+  function isListedLevel(level) {
+    return listedLevelKey(level) !== null;
+  }
+
+  function classifyRange(cl) {
+    if (typeof cl !== "number" || !isFinite(cl) || cl < 0) return null;
+    if (cl >= ADD_THRESHOLD) return "none";
+    if (cl >= 0.4) return "r045";
+    if (cl >= 0.3) return "r034";
+    if (cl >= 0.2) return "r023";
+    return "r020";
+  }
+
+  function waterVolumeL(level) {
+    return (level / 10) * TANK_FULL_L;
+  }
+
+  function addedConcentration(ml, level) {
+    return (ml * STOCK_MG_PER_ML) / waterVolumeL(level);
+  }
+
+  function estimatedTotal(measured, ml, level) {
+    return measured + addedConcentration(ml, level);
+  }
+
+  function format2(n) {
+    if (!isFinite(n)) return "—";
+    return (Math.round(n * 100) / 100).toFixed(2);
+  }
+
+  function neighborLevels(level) {
+    var lower = null;
+    var upper = null;
+    for (var i = 0; i < LISTED_LEVELS.length; i++) {
+      if (LISTED_LEVELS[i] < level) lower = LISTED_LEVELS[i];
+      if (LISTED_LEVELS[i] > level && upper === null) upper = LISTED_LEVELS[i];
+    }
+    var out = [];
+    if (lower !== null) out.push(lower);
+    if (upper !== null) out.push(upper);
+    return out;
+  }
+
+  function getSuggestion(cl, level) {
+    var rangeId = classifyRange(cl);
+    var result = {
+      ok: false,
+      needsAddition: false,
+      rangeId: rangeId,
+      range: rangeId && rangeId !== "none" ? TABLE[rangeId] : null,
+      isListedLevel: false,
+      levelColumn: null,
+      suggestionMl: null,
+      suggestionKind: "invalid",
+      neighbors: []
+    };
+    if (rangeId === null) return result;
+    if (typeof level !== "number" || !isFinite(level) || level < 1 || level > 10) {
+      if (rangeId === "none") {
+        result.ok = true;
+        result.needsAddition = false;
+        result.suggestionKind = "none-needed";
+      }
+      return result;
+    }
+    result.ok = true;
+    result.isListedLevel = isListedLevel(level);
+    result.levelColumn = listedLevelKey(level);
+    if (rangeId === "none") {
+      result.needsAddition = false;
+      result.suggestionKind = "none-needed";
+      return result;
+    }
+    result.needsAddition = true;
+    var range = TABLE[rangeId];
+    if (!result.isListedLevel) {
+      result.suggestionKind = "not-listed";
+      var neigh = neighborLevels(level);
+      result.neighbors = neigh.map(function (lv) {
+        return { level: lv, ml: range.volumes[lv], tableConc: range.tableConc[lv] };
+      });
+      return result;
+    }
+    var ml = range.volumes[result.levelColumn];
+    if (ml === null) {
+      result.suggestionKind = "no-add";
+      result.suggestionMl = null;
+    } else {
+      result.suggestionKind = "volume";
+      result.suggestionMl = ml;
+    }
+    return result;
+  }
+
+  return {
+    STOCK_MG_PER_ML: STOCK_MG_PER_ML,
+    TANK_FULL_L: TANK_FULL_L,
+    ADD_THRESHOLD: ADD_THRESHOLD,
+    LISTED_LEVELS: LISTED_LEVELS,
+    TABLE: TABLE,
+    RANGE_ORDER: RANGE_ORDER,
+    classifyRange: classifyRange,
+    isListedLevel: isListedLevel,
+    listedLevelKey: listedLevelKey,
+    waterVolumeL: waterVolumeL,
+    addedConcentration: addedConcentration,
+    estimatedTotal: estimatedTotal,
+    format2: format2,
+    neighborLevels: neighborLevels,
+    getSuggestion: getSuggestion
+  };
+})();
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = ChlorineCalc;
+}
+/* === CORE_LOGIC_END === */
+
+(function () {
+  var C = ChlorineCalc;
+  var elCl = document.getElementById("chlorine");
+  var elLv = document.getElementById("level");
+  var elVol = document.getElementById("volume");
+  var elJudge = document.getElementById("judge");
+  var elCalc = document.getElementById("calc-out");
+  var elClear = document.getElementById("btn-clear");
+  var volumeAutofilled = false;
+
+  function parseNum(el) {
+    var raw = el.value.trim();
+    if (raw === "") return { empty: true, value: null };
+    var n = Number(raw);
+    if (!isFinite(n)) return { empty: false, value: null, invalid: true };
+    return { empty: false, value: n };
+  }
+
+  function escapeHtml(s) {
+    return String(s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function renderTable(activeRange, activeLevel) {
+    var html = "";
+    C.RANGE_ORDER.forEach(function (id) {
+      var r = C.TABLE[id];
+      var rowHl = activeRange === id ? " hl-row" : "";
+      function colClass(lv) {
+        return (activeLevel !== null && C.listedLevelKey(activeLevel) === lv) ? " hl-col" : "";
+      }
+      html += "<tr class=\"band" + rowHl + "\">";
+      html += "<td class=\"rowhead\" rowspan=\"3\">檢測值<br>" + escapeHtml(r.tableLabel) + "<br><span style=\"font-weight:400;color:#4d6670;font-size:.9em\">" + escapeHtml(r.intervalLabel) + "</span></td>";
+      html += "<td class=\"kind\">水位（分滿）</td>";
+      C.LISTED_LEVELS.forEach(function (lv) {
+        html += "<td class=\"" + colClass(lv) + "\">" + lv + "</td>";
+      });
+      html += "</tr>";
+      html += "<tr class=\"" + rowHl.trim() + "\">";
+      html += "<td class=\"kind\">添加體積（mL）</td>";
+      C.LISTED_LEVELS.forEach(function (lv) {
+        var v = r.volumes[lv];
+        html += "<td class=\"" + colClass(lv) + "\">" + (v === null ? "不添加" : v) + "</td>";
+      });
+      html += "</tr>";
+      html += "<tr class=\"" + rowHl.trim() + "\">";
+      html += "<td class=\"kind\">添加濃度（mg/L）</td>";
+      C.LISTED_LEVELS.forEach(function (lv) {
+        html += "<td class=\"" + colClass(lv) + "\">" + r.tableConc[lv] + "</td>";
+      });
+      html += "</tr>";
+    });
+    document.getElementById("ref-body").innerHTML = html;
+  }
+
+  function volumeLabel(ml) {
+    return ml === null ? "不添加" : ml + " mL";
+  }
+
+  function renderJudge() {
+    var clp = parseNum(elCl);
+    var lvp = parseNum(elLv);
+    var cl = clp.empty ? null : clp.value;
+    var lv = lvp.empty ? null : lvp.value;
+
+    if (clp.empty && lvp.empty) {
+      elJudge.className = "status neutral";
+      elJudge.innerHTML = "<span class=\"badge\" >待輸入</span><p class=\"lead\">請先輸入餘氯檢測值與剩餘水位。</p>";
+      renderTable(null, null);
+      maybeAutofill(null);
+      return;
+    }
+    if (!clp.empty && (cl === null || cl < 0)) {
+      elJudge.className = "status unlisted";
+      elJudge.innerHTML = "<span class=\"badge\">輸入有誤</span><p class=\"lead\">餘氯檢測值須為 0 或正數。</p>";
+      renderTable(null, null);
+      maybeAutofill(null);
+      return;
+    }
+    if (!lvp.empty && (lv === null || lv < 1 || lv > 10)) {
+      elJudge.className = "status unlisted";
+      elJudge.innerHTML = "<span class=\"badge\">輸入有誤</span><p class=\"lead\">剩餘水位請輸入 1 至 10 分滿（可含小數）。</p>";
+      renderTable(cl !== null ? C.classifyRange(cl) : null, null);
+      maybeAutofill(null);
+      return;
+    }
+
+    if (cl === null) {
+      elJudge.className = "status neutral";
+      elJudge.innerHTML = "<span class=\"badge\">待輸入</span><p class=\"lead\">請輸入餘氯檢測值，才能對照表列建議。</p>";
+      renderTable(null, lv);
+      maybeAutofill(null);
+      return;
+    }
+
+    var sug = C.getSuggestion(cl, lv === null ? NaN : lv);
+    renderTable(sug.rangeId && sug.rangeId !== "none" ? sug.rangeId : null, lv);
+
+    if (sug.suggestionKind === "none-needed") {
+      elJudge.className = "status ok";
+      var extra = lv === null ? "<p>剩餘水位尚未輸入；若仍要試算添加濃度，請補上水位與添加體積。</p>" : "";
+      elJudge.innerHTML =
+        "<span class=\"badge\">不需補加</span>" +
+        "<p class=\"lead\">檢測值 " + C.format2(cl) + " mg/L，已達 0.5 mg/L（含）以上，不需進行添加補充。</p>" +
+        extra;
+      maybeAutofill(sug);
+      return;
+    }
+
+    if (lv === null) {
+      elJudge.className = "status need";
+      elJudge.innerHTML =
+        "<span class=\"badge\">需補加</span>" +
+        "<p class=\"lead\">檢測值 " + C.format2(cl) + " mg/L，低於 0.5 mg/L，需進行添加補充。</p>" +
+        "<p>所屬區間：" + escapeHtml(sug.range.intervalLabel) + "（原表：" + escapeHtml(sug.range.tableLabel) + "）。請再輸入剩餘水位，以對照建議添加體積。</p>";
+      maybeAutofill(sug);
+      return;
+    }
+
+    if (sug.suggestionKind === "no-add") {
+      elJudge.className = "status ok";
+      elJudge.innerHTML =
+        "<span class=\"badge\">表列：不添加</span>" +
+        "<p class=\"lead\">檢測值 " + C.format2(cl) + " mg/L，水位 " + lv + " 分滿。</p>" +
+        "<p>屬「" + escapeHtml(sug.range.intervalLabel) + "」（原表：" + escapeHtml(sug.range.tableLabel) + "），表上此欄為<strong>不添加</strong>。</p>" +
+        "<p>若現場仍有添加，請在下方自行輸入實際添加體積以計算濃度。</p>";
+      maybeAutofill(sug);
+      return;
+    }
+
+    if (sug.suggestionKind === "volume") {
+      elJudge.className = "status need";
+      elJudge.innerHTML =
+        "<span class=\"badge\">需補加</span>" +
+        "<p class=\"lead\">檢測值 " + C.format2(cl) + " mg/L　·　水位 " + lv + " 分滿</p>" +
+        "<p>所屬區間：" + escapeHtml(sug.range.intervalLabel) + "（原表：" + escapeHtml(sug.range.tableLabel) + "）</p>" +
+        "<p>表列建議添加體積</p>" +
+        "<div class=\"sug-num\">" + sug.suggestionMl + "<small>mL</small></div>" +
+        "<p>表列添加濃度：" + sug.range.tableConc[sug.levelColumn] + " mg/L（依公式四捨五入至小數 2 位，與原表相同）</p>";
+      maybeAutofill(sug);
+      return;
+    }
+
+    if (sug.suggestionKind === "not-listed") {
+      var rows = sug.neighbors.map(function (n) {
+        return "<li>" + n.level + " 分滿：建議 " + volumeLabel(n.ml) +
+          (n.ml === null ? "" : "（表列濃度 " + n.tableConc + " mg/L）") + "</li>";
+      }).join("");
+      elJudge.className = "status unlisted";
+      elJudge.innerHTML =
+        "<span class=\"badge\">非表列</span>" +
+        "<p class=\"lead\">檢測值 " + C.format2(cl) + " mg/L　·　水位 " + lv + " 分滿，不在表列的 3、5、7、10 分滿。</p>" +
+        "<p>所屬區間：" + escapeHtml(sug.range.intervalLabel) + "（原表：" + escapeHtml(sug.range.tableLabel) + "）。本工具<strong>不自行推估</strong>建議添加量，請依現場判斷輸入實際添加體積，再依公式計算。</p>" +
+        (rows ? "<div class=\"neighbors\"><h3>相鄰表列欄位（僅供參考，非本水位之建議）</h3><ul>" + rows + "</ul></div>" : "");
+      maybeAutofill(sug);
+      return;
+    }
+  }
+
+  function maybeAutofill(sug) {
+    if (sug && sug.suggestionKind === "volume" && (elVol.value.trim() === "" || volumeAutofilled)) {
+      elVol.value = String(sug.suggestionMl);
+      volumeAutofilled = true;
+    } else if (sug && sug.suggestionKind !== "volume" && volumeAutofilled) {
+      elVol.value = "";
+      volumeAutofilled = false;
+    }
+  }
+
+  function renderCalc() {
+    var clp = parseNum(elCl);
+    var lvp = parseNum(elLv);
+    var vp = parseNum(elVol);
+    if (vp.empty) {
+      elCalc.innerHTML = "<p class=\"hint-line\">輸入實際添加體積後，將顯示添加濃度與預估補加後總餘氯。</p>";
+      return;
+    }
+    if (vp.value === null || vp.value < 0) {
+      elCalc.innerHTML = "<p class=\"hint-line\">實際添加體積須為 0 或正數。</p>";
+      return;
+    }
+    if (lvp.empty || lvp.value === null || lvp.value < 1 || lvp.value > 10) {
+      elCalc.innerHTML = "<p class=\"hint-line\">請先輸入 1 至 10 分滿的剩餘水位，才能計算添加濃度。</p>";
+      return;
+    }
+    var lv = lvp.value;
+    var ml = vp.value;
+    var conc = C.addedConcentration(ml, lv);
+    var volL = C.waterVolumeL(lv);
+    var mass = ml * C.STOCK_MG_PER_ML;
+    var html = "";
+    html += "<div class=\"metrics\">";
+    html += "<div class=\"metric\"><div class=\"k\">添加濃度</div><div class=\"v\">" + C.format2(conc) + " <small>mg/L</small></div></div>";
+    if (!clp.empty && clp.value !== null && clp.value >= 0) {
+      var total = C.estimatedTotal(clp.value, ml, lv);
+      html += "<div class=\"metric\"><div class=\"k\">預估補加後總餘氯</div><div class=\"v\">" + C.format2(total) + " <small>mg/L</small></div></div>";
+    } else {
+      html += "<div class=\"metric\"><div class=\"k\">預估補加後總餘氯</div><div class=\"v\">—</div></div>";
+    }
+    html += "</div>";
+    html += "<div class=\"formula\"><div class=\"title\">計算過程</div>";
+    html += "<div class=\"eq\">添加濃度 = 添加體積(mL) × 100 ÷ (水位分滿 ÷ 10 × 1000)</div>";
+    html += "<div class=\"eq\">= " + ml + " × 100 ÷ (" + lv + " ÷ 10 × 1000)</div>";
+    html += "<div class=\"eq\">= " + mass + " mg ÷ " + volL + " L</div>";
+    html += "<div class=\"eq\">= " + conc + " mg/L</div>";
+    html += "<div class=\"eq\">顯示值（四捨五入至小數 2 位）= " + C.format2(conc) + " mg/L</div>";
+    if (!clp.empty && clp.value !== null && clp.value >= 0) {
+      var total2 = C.estimatedTotal(clp.value, ml, lv);
+      html += "<div class=\"eq\" style=\"margin-top:6px\">預估補加後總餘氯 = 檢測值 + 添加濃度</div>";
+      html += "<div class=\"eq\">= " + clp.value + " + " + conc + " = " + total2 + " mg/L</div>";
+      html += "<div class=\"eq\">顯示值（四捨五入至小數 2 位）= " + C.format2(total2) + " mg/L</div>";
+      if (total2 >= 0.5) {
+        html += "<p class=\"hint-line\">預估已達 0.5 mg/L 以上。</p>";
+      } else {
+        html += "<p class=\"hint-line\">預估仍低於 0.5 mg/L。</p>";
+      }
+    }
+    html += "</div>";
+    elCalc.innerHTML = html;
+  }
+
+  function refresh() {
+    renderJudge();
+    renderCalc();
+  }
+
+  elCl.addEventListener("input", refresh);
+  elLv.addEventListener("input", refresh);
+  elVol.addEventListener("input", function () {
+    volumeAutofilled = false;
+    renderCalc();
+  });
+  elClear.addEventListener("click", function () {
+    elCl.value = "";
+    elLv.value = "";
+    elVol.value = "";
+    volumeAutofilled = false;
+    refresh();
+    elCl.focus();
+  });
+
+  renderTable(null, null);
+  refresh();
+})();
+  </script>
+  <script>
+  (function () {
+    if (location.protocol === "file:") return;
+    if (!("serviceWorker" in navigator)) return;
+    navigator.serviceWorker.register("./sw.js");
+  })();
+  </script>
+</body>
+</html>
